@@ -1,0 +1,10 @@
+[package]
+name = "ya-websockat"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = { version = "4.8.0", features = ["macros"], default-features = false }
+actix = { version = "0.13.5", features = [], default-features = false }
+actix-ws = { version = "0.3.0", features = [], default-features = false }
+futures-util = "0.3.30"

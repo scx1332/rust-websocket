@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <p>This example will receive &quot;Hello&quot; for each byte in the packet being sent.
+        Tiny-http doesn't support decoding websocket frames, so we can't do anything better.</p>
+    <p><input type="text" id="msg" />
+        <button onclick="send(document.getElementById('msg').value)">Send</button></p>
+    <p>Received: </p>
+    <p id="result"></p>
+
+</body>
+<script type="text/javascript">
+    let socket = null;
+
+    async function send() {
+
+        let data = "SAMPLE DATA SEND TO SERVER";
+        for (let i = 0; i < 100; i++) {
+            let bindata = new TextEncoder().encode(data);
+            socket.send(bindata);
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+
+
+    window.onload = function() {
+        socket = new WebSocket("ws://127.0.0.1:8080/ws");
+
+        socket.onmessage = function(event) {
+            document.getElementById('result').innerHTML += event.data + '<br />';
+        }
+        socket.onopen = function() {
+            console.log('Connected');
+        }
+        socket.onclose = function(event) {
+            console.log(`Error ${event.code}`);
+        }
+        socket.onerror = function(event) {
+
+        }
+    }
+
+
+</script>
+</html>
