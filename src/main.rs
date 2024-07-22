@@ -6,6 +6,7 @@ use futures_util::StreamExt;
 
 async fn ws(req: HttpRequest, body: web::Payload) -> actix_web::Result<impl Responder> {
 
+    //let b = body.to_bytes_limited(100).await.unwrap();
 
     let (response, mut session, mut msg_stream) = reimpl::handle(&req, body)?;
 

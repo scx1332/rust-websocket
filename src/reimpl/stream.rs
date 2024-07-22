@@ -125,6 +125,13 @@ impl Stream for StreamingBody {
         loop {
             match Pin::new(&mut this.session_rx).poll_recv(cx) {
                 Poll::Ready(Some(msg)) => {
+                    match &msg {
+                        Message::Binary(item) => {
+                            println!("-- Append message {}", item.len());
+                        }
+                        _ => {
+                        }
+                    }
                     this.messages.push_back(msg);
                 }
                 Poll::Ready(None) => {
@@ -159,6 +166,7 @@ impl Stream for MessageStream {
         //
         // This is faster than polling and parsing
         if let Some(msg) = this.messages.pop_front() {
+            println!("-- Pop message");
             return Poll::Ready(Some(Ok(msg)));
         }
 
@@ -167,7 +175,9 @@ impl Stream for MessageStream {
             loop {
                 match Pin::new(&mut this.payload).poll_next(cx) {
                     Poll::Ready(Some(Ok(bytes))) => {
+                        println!("-- Append bytes {:?}", bytes.len());
                         this.buf.extend_from_slice(&bytes);
+                        //break;
                     }
                     Poll::Ready(Some(Err(err))) => {
                         return Poll::Ready(Some(Err(ProtocolError::Io(io::Error::other(err)))));
@@ -191,7 +201,10 @@ impl Stream for MessageStream {
                             ProtocolError::Io(io::Error::new(io::ErrorKind::InvalidData, err))
                         })?
                 }
-                Frame::Binary(bytes) => Message::Binary(bytes),
+                Frame::Binary(bytes) => {
+                    println!("Decode frame: {}", bytes.len());
+                    Message::Binary(bytes)
+                },
                 Frame::Ping(bytes) => Message::Ping(bytes),
                 Frame::Pong(bytes) => Message::Pong(bytes),
                 Frame::Close(reason) => Message::Close(reason),
@@ -203,6 +216,7 @@ impl Stream for MessageStream {
 
         // Return the first message in the queue
         if let Some(msg) = this.messages.pop_front() {
+            println!("-- Pop message2");
             return Poll::Ready(Some(Ok(msg)));
         }
 

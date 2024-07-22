@@ -12,4 +12,3 @@ actix-http = { version = "3.0.0", features = [], default-features = false }
 bytestring = "1"
 futures-core = "0.3.30"
 actix-codec = "0.5.2"
-actix-ws = "0.3.0"

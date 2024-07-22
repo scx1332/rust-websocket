@@ -18,12 +18,17 @@
 
     async function send() {
 
-        let data = "SAMPLE DATA SEND TO SERVER";
-        for (let i = 0; i < 100; i++) {
-            let bindata = new TextEncoder().encode(data);
-            socket.send(bindata);
-            console.log(`Sent ${data.length} bytes`);
-            await new Promise(resolve => setTimeout(resolve, 100));
+        //random 1mB data
+        let data = new ArrayBuffer(60000);
+
+        for (let i = 0; i < 1000000; i++) {
+            if (socket.bufferedAmount > 10000) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                continue;
+            }
+            socket.send(data);
+            console.log(`Send ${data.byteLength} bytes`);
+            //await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
 

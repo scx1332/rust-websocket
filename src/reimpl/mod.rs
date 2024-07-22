@@ -68,7 +68,7 @@ pub fn handle(
     body: web::Payload,
 ) -> Result<(HttpResponse, Session, MessageStream), actix_web::Error> {
     let mut response = handshake(req.head())?;
-    let (tx, rx) = channel(32);
+    let (tx, rx) = channel(2);
 
     Ok((
         response
