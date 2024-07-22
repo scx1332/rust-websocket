@@ -1,9 +1,13 @@
+mod reimpl;
+
 use actix_web::{middleware::Logger, web, App, HttpRequest, HttpServer, Responder};
-use actix_ws::Message;
+use reimpl::Message;
 use futures_util::StreamExt;
 
 async fn ws(req: HttpRequest, body: web::Payload) -> actix_web::Result<impl Responder> {
-    let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body)?;
+
+
+    let (response, mut session, mut msg_stream) = reimpl::handle(&req, body)?;
 
     actix_web::rt::spawn(async move {
         while let Some(Ok(msg)) = msg_stream.next().await {
@@ -14,7 +18,10 @@ async fn ws(req: HttpRequest, body: web::Payload) -> actix_web::Result<impl Resp
                     }
                 }
                 Message::Text(msg) => println!("Got text: {msg}"),
-                Message::Binary(msg) => println!("Got binary: {} bytes", msg.len()),
+                Message::Binary(msg) => {
+                    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                    println!("Got binary: {} bytes", msg.len());
+                },
                 _ => break,
             }
         }
@@ -32,9 +39,9 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .route("/ws", web::get().to(ws))
     })
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await?;
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await?;
 
     Ok(())
 }

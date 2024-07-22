@@ -6,5 +6,9 @@ edition = "2021"
 [dependencies]
 actix-web = { version = "4.8.0", features = ["macros"], default-features = false }
 actix = { version = "0.13.5", features = [], default-features = false }
-actix-ws = { version = "0.3.0", features = [], default-features = false }
 futures-util = "0.3.30"
+tokio = { version = "1.38.1", features = [], default-features = false }
+actix-http = { version = "3.0.0", features = [], default-features = false }
+bytestring = "1"
+futures-core = "0.3.30"
+actix-codec = "0.5.2"
