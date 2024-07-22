@@ -13,6 +13,7 @@ use tokio::sync::mpsc::channel;
 
 mod session;
 mod stream;
+mod aggregated;
 
 pub use self::{
     session::{Closed, Session},

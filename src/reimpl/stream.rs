@@ -19,6 +19,8 @@ use bytestring::ByteString;
 use futures_core::stream::Stream;
 use tokio::sync::mpsc::Receiver;
 
+use crate::reimpl::aggregated::AggregatedMessageStream;
+
 /// Response body for a WebSocket.
 pub struct StreamingBody {
     session_rx: Receiver<Message>,
@@ -81,6 +83,16 @@ impl MessageStream {
         self
     }
 
+    /// Returns a stream wrapper that collects continuation frames into their equivalent aggregated
+    /// forms, i.e., binary or text.
+    ///
+    /// By default, continuations will be aggregated up to 1MiB in size (customizable with
+    /// [`AggregatedMessageStream::max_continuation_size()`]). The stream implementation returns an
+    /// error if this size is exceeded.
+    #[allow(dead_code)]
+    pub fn aggregate_continuations(self) -> AggregatedMessageStream {
+        AggregatedMessageStream::new(self)
+    }
 
     /// Waits for the next item from the message stream
     ///

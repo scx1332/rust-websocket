@@ -143,6 +143,39 @@ impl Session {
         }
     }
 
+    /// Manually controls sending continuations.
+    ///
+    /// Be wary of this method. Continuations represent multiple frames that, when combined, are
+    /// presented as a single message. They are useful when the entire contents of a message are
+    /// not available all at once. However, continuations MUST NOT be interrupted by other Text or
+    /// Binary messages. Control messages such as Ping, Pong, or Close are allowed to interrupt a
+    /// continuation.
+    ///
+    /// Continuations must be initialized with a First variant, and must be terminated by a Last
+    /// variant, with only Continue variants sent in between.
+    ///
+    /// ```no_run
+    /// # use actix_ws::{Item, Session};
+    /// # async fn test(mut session: Session) -> Result<(), Box<dyn std::error::Error>> {
+    /// session.continuation(Item::FirstText("Hello".into())).await?;
+    /// session.continuation(Item::Continue(b", World"[..].into())).await?;
+    /// session.continuation(Item::Last(b"!"[..].into())).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[allow(dead_code)]
+    pub async fn continuation(&mut self, msg: Item) -> Result<(), Closed> {
+        self.pre_check();
+        if let Some(inner) = self.inner.as_mut() {
+            inner
+                .send(Message::Continuation(msg))
+                .await
+                .map_err(|_| Closed)
+        } else {
+            Err(Closed)
+        }
+    }
+
     /// Sends a close message, and consumes the session.
     ///
     /// All clones will return `Err(Closed)` if used after this call.
