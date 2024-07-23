@@ -11,9 +11,9 @@ use actix_http::{
 use actix_web::{web, HttpRequest, HttpResponse};
 use tokio::sync::mpsc::channel;
 
+mod aggregated;
 mod session;
 mod stream;
-mod aggregated;
 
 pub use self::{
     session::{Closed, Session},
@@ -68,7 +68,7 @@ pub fn handle(
     body: web::Payload,
 ) -> Result<(HttpResponse, Session, MessageStream), actix_web::Error> {
     let mut response = handshake(req.head())?;
-    let (tx, rx) = channel(2);
+    let (tx, rx) = channel(32);
 
     Ok((
         response

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+actix-ws = { version = "0.3.0" }
 actix-web = { version = "4.8.0", features = ["macros"], default-features = false }
 actix = { version = "0.13.5", features = [], default-features = false }
 futures-util = "0.3.30"
@@ -12,3 +13,7 @@ actix-http = { version = "3.0.0", features = [], default-features = false }
 bytestring = "1"
 futures-core = "0.3.30"
 actix-codec = "0.5.2"
+tungstenite = "0.23.0"
+clap = { version = "4.5.10", features = ["derive"] }
+log = "0.4.22"
+env_logger = "0.11.4"

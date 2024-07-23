@@ -21,20 +21,24 @@
         //random 1mB data
         let data = new ArrayBuffer(60000);
 
-        for (let i = 0; i < 1000000; i++) {
-            if (socket.bufferedAmount > 10000) {
+        let packets = 0;
+        while (packets < 4000) {
+            if (socket.bufferedAmount > 1000000) {
                 await new Promise(resolve => setTimeout(resolve, 50));
                 continue;
             }
             socket.send(data);
-            console.log(`Send ${data.byteLength} bytes`);
+            packets += 1;
+            if (packets % 100 === 0) {
+                console.log(`Sent ${packets} packets`);
+            }
             //await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
 
 
     window.onload = function() {
-        socket = new WebSocket("ws://127.0.0.1:8080/ws");
+        socket = new WebSocket("ws://127.0.0.1:8080/ws/127.0.0.1:10000");
 
         socket.onmessage = function(event) {
             document.getElementById('result').innerHTML += event.data + '<br />';

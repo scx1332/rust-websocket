@@ -129,8 +129,7 @@ impl Stream for StreamingBody {
                         Message::Binary(item) => {
                             println!("-- Append message {}", item.len());
                         }
-                        _ => {
-                        }
+                        _ => {}
                     }
                     this.messages.push_back(msg);
                 }
@@ -204,7 +203,7 @@ impl Stream for MessageStream {
                 Frame::Binary(bytes) => {
                     println!("Decode frame: {}", bytes.len());
                     Message::Binary(bytes)
-                },
+                }
                 Frame::Ping(bytes) => Message::Ping(bytes),
                 Frame::Pong(bytes) => Message::Pong(bytes),
                 Frame::Close(reason) => Message::Close(reason),
