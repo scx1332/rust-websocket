@@ -1,5 +1,3 @@
-mod reimpl;
-
 use actix_web::{middleware::Logger, web, App, HttpRequest, HttpServer, Responder};
 use actix_ws::Message;
 use futures_util::StreamExt;
@@ -13,17 +11,15 @@ async fn ws(
     //let b = body.to_bytes_limited(100).await.unwrap();
     //connecting to tcp server:
     let addr = path.into_inner().0;
-    let mut stream = TcpStream::connect(&addr).await?;
+    let stream = TcpStream::connect(&addr).await?;
 
     let (mut reader, mut writer) = stream.into_split();
 
     log::info!("Connected to {}", addr);
     let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body)?;
 
-    let mut packet_no = 0;
-
     actix_web::rt::spawn(async move {
-        let mut buf = vec![0; 16 * 1024];
+        let mut buf = vec![0; 60 * 1000];
         loop {
             let res = reader.read(&mut buf).await;
 
@@ -32,8 +28,7 @@ async fn ws(
                     if n == 0 {
                         break;
                     }
-                    let b = buf[..n].to_vec();
-                    session.binary(b).await.unwrap();
+                    session.binary(buf[..n].to_vec()).await.unwrap();
                 }
                 Err(e) => {
                     log::error!("Error reading from tcp stream: {}", e);
@@ -45,20 +40,14 @@ async fn ws(
     actix_web::rt::spawn(async move {
         while let Some(Ok(msg)) = msg_stream.next().await {
             match msg {
-                Message::Ping(bytes) => {}
+                Message::Ping(_bytes) => {
+                    //@todo: implement
+                }
                 Message::Text(msg) => {
                     writer.write_all(msg.as_bytes()).await.unwrap();
-
                 }
                 Message::Binary(msg) => {
-                    packet_no += 1;
-                    //let packet_delay = 0.031 + (packet_no as f64 / 1000.0).sin() * 0.03;
-
-                    //tokio::time::sleep(std::time::Duration::from_secs_f64(packet_delay)).await;
-
                     writer.write_all(&msg).await.unwrap();
-
-                    log::debug!("Got binary: {} bytes", msg.len());
                 }
                 _ => break,
             }
@@ -69,9 +58,6 @@ async fn ws(
 }
 
 use clap::Parser;
-use std::net::TcpListener;
-use std::sync::{Arc, Mutex};
-use std::thread::{sleep, spawn};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
