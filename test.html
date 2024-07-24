@@ -23,7 +23,7 @@
         let packets = 0;
         while (packets < 4000) {
             if (socket.bufferedAmount > 1000000) {
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise(resolve => setTimeout(resolve, 1));
                 continue;
             }
             socket.send(data);
@@ -35,18 +35,39 @@
         }
     }
 
-
+    let dataReceived = 0;
     window.onload = function() {
-        socket = new WebSocket("ws://127.0.0.1:8080/ws/127.0.0.1:3682");
+        socket = new WebSocket("ws://127.0.0.1:8080/ws/127.0.0.1:1235");
 
-        socket.onmessage = function(event) {
-            document.getElementById('result').innerHTML += event.data + '<br />';
+        socket.onmessage = async function(event) {
+            if (event.data instanceof Blob) {
+                let reader = new FileReader();
+
+
+
+                reader.readAsArrayBuffer(event.data);
+
+                reader.onload = () => {
+                    if (reader.result instanceof ArrayBuffer) {
+                        dataReceived += reader.result.byteLength;
+                    } else {
+                        throw new Error("Expected ArrayBuffer");
+                    }
+                };
+                while (reader.readyState !== FileReader.DONE) {
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+
+            } else {
+                console.log("Result: " + event.data);
+            }
+            document.getElementById('result').innerHTML = `Received ${dataReceived / 1000 / 1000} MB`;
         }
         socket.onopen = function() {
             console.log('Connected');
         }
         socket.onclose = function(event) {
-            console.log(`Error ${event.code}`);
+            console.log(`Closed ${event.code}`);
         }
         socket.onerror = function(event) {
 

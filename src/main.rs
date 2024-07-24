@@ -74,39 +74,6 @@ use std::sync::{Arc, Mutex};
 use std::thread::{sleep, spawn};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tungstenite::accept;
-
-/// A WebSocket echo server
-fn light() {
-    let server = TcpListener::bind("127.0.0.1:9001").unwrap();
-    for stream in server.incoming() {
-        let mut websocket = accept(stream.unwrap()).unwrap();
-        spawn(move || {
-            loop {
-                let msg = match websocket.read() {
-                    Ok(msg) => msg,
-                    Err(e) => match e {
-                        tungstenite::Error::ConnectionClosed => {
-                            println!("Connection closed");
-                            break;
-                        }
-                        _ => {
-                            println!("Error reading message: {:?}", e);
-                            break;
-                        }
-                    },
-                };
-
-                println!("Received message {}", msg.len());
-                sleep(std::time::Duration::from_secs(1));
-                // We do not want to send back ping/pong messages.
-                /*if msg.is_binary() || msg.is_text() {
-                    websocket.send(msg).unwrap();
-                }*/
-            }
-        });
-    }
-}
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -125,26 +92,21 @@ async fn main() -> std::io::Result<()> {
         env::var("RUST_LOG").unwrap_or("info".to_string()),
     );
     env_logger::init();
-    let use_tungstenite = false;
     let args = Args::parse();
-    if use_tungstenite {
-        light();
-    } else {
-        log::info!(
-            "Starting server on {}:{}",
-            args.listen_addr,
-            args.listen_port
-        );
+    log::info!(
+        "Starting server on {}:{}",
+        args.listen_addr,
+        args.listen_port
+    );
 
-        HttpServer::new(move || {
-            App::new()
-                .wrap(Logger::default())
-                .route("/ws/{addr}", web::get().to(ws))
-        })
-        .bind(format!("{}:{}", args.listen_addr, args.listen_port))?
-        .run()
-        .await?;
-    }
+    HttpServer::new(move || {
+        App::new()
+            .wrap(Logger::default())
+            .route("/ws/{addr}", web::get().to(ws))
+    })
+    .bind(format!("{}:{}", args.listen_addr, args.listen_port))?
+    .run()
+    .await?;
 
     Ok(())
 }
