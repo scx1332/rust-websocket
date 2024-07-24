@@ -47,7 +47,8 @@ async fn ws(
             match msg {
                 Message::Ping(bytes) => {}
                 Message::Text(msg) => {
-                    log::debug!("Got text: {msg} - ignoring")
+                    writer.write_all(msg.as_bytes()).await.unwrap();
+
                 }
                 Message::Binary(msg) => {
                     packet_no += 1;
